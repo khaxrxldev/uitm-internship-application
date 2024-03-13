@@ -1,0 +1,146 @@
+<app-toast #toast></app-toast>
+<div class="row g-0 content-col">
+  <div class="col-12 border-bottom bg-white px-2 py-3">
+    <h4 class="header">Result</h4>
+    <div class="sub-header">Manage all students result information</div>
+  </div>
+  <!-- <div class="col-12 border-bottom bg-white"></div> -->
+  <div class="col-12 content-col-str border">
+    <div class="w-100 p-2 border-start border-5">
+      <b>Student List</b>
+    </div>
+    <div class="w-100 p-2 border-top bg-white">
+      <div class="card">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item p-1">
+            <div class="row g-1">
+              <div class="col-lg-3 col-12">
+                <div class="input-group">
+                  <select id="classSelect" #classSelect [ngClass]="{'filter-success': classSelect.value}" (change)="getStudentResults()" class="form-select form-select-sm">
+                    <option value="" selected hidden>Class</option>
+                    <option *ngFor="let class of (studentClassList$ | async)">{{ class }}</option>
+                  </select>
+                  <button [disabled]="!classSelect.value" [ngClass]="{'filter-success': classSelect.value}" (click)="classSelect.value = ''; getStudentResults()" class="input-group-text">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col-lg-3 col-12">
+                <div class="input-group">
+                  <select id="statusSelect" #statusSelect [ngClass]="{'filter-success': statusSelect.value}" (change)="getStudentResults()" class="form-select form-select-sm">
+                    <option value="" selected hidden>Status</option>
+                    <option value="CMP">Complete</option>
+                    <option value="PND">Pending</option>
+                  </select>
+                  <button [disabled]="!statusSelect.value" [ngClass]="{'filter-success': statusSelect.value}" (click)="statusSelect.value = ''; getStudentResults()" class="input-group-text">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col-lg-6 col-12">
+                <app-button-group (click)="printResult(classSelect.value, statusSelect.value)" class="float-end" [btnTxt]="'Print'" [btnIcn]="'fa-print'" [btnContentColor]="'#fff'" [btnBgClass]="'bg-secondary'" [btnBorderClass]="'border-secondary'"></app-button-group>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <div class="card-body p-0 px-1 overflow-auto">
+          <app-datatable #ResultDatatable *ngIf="(studentResultsDatatable$ | async) as studentResults" [data]="studentResults" [columns]="columns" [customColumn]="true" [customColumnContent]="customColumnString"></app-datatable>
+        </div>
+      </div>
+      <br>
+      <!--
+      <div class="card">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item p-1">
+            <div class="row g-1">
+              <div class="col-lg-9 col-12"></div>
+              <div class="col-lg-3 col-12">
+                <div class="input-group">
+                  <input oninput="this.value = this.value.toUpperCase()" type="text" class="form-control form-control-sm" (keyup)="onFilterTable($event)">
+                  <span class="select-icon input-group-text">
+                    <i class="fa fa-search"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <div class="card-body p-1 overflow-auto">
+          <table class="w-100" id="resultTableId">
+            <tr>
+              <th rowspan="2">MATRIC NUMBER</th>
+              <th rowspan="2">NAME</th>
+              <th>CLASS</th>
+              <th>STATUS</th>
+              <th colspan="3">CST 656</th>
+              <th colspan="3">CST 666</th>
+            </tr>
+            <tr>
+              <th>
+                <div class="input-group input-group-sm">
+                  <select #classSelect (change)="onSelectFilterTable(classSelect.value, statusSelect.value)" class="form-select form-select-sm">
+                    <option value="" selected hidden></option>
+                    <option *ngFor="let class of (classList$ | async)">{{ class }}</option>
+                  </select>
+                  <button (click)="classSelect.value = ''; onSelectFilterTable('', statusSelect.value)" class="input-group-text" type="button">
+                    <i class="fa fa-times mx-1"></i>
+                  </button>
+                </div>
+              </th>
+              <th>
+                <div class="input-group input-group-sm">
+                  <select #statusSelect (change)="onSelectFilterTable(classSelect.value, statusSelect.value)" class="form-select form-select-sm">
+                    <option value="" selected hidden></option>
+                    <option value="Complete">Complete</option>
+                    <option value="Incomplete">Incomplete</option>
+                  </select>
+                  <button (click)="statusSelect.value = ''; onSelectFilterTable(classSelect.value, '')" class="input-group-text" type="button">
+                    <i class="fa fa-times mx-1"></i>
+                  </button>
+                </div>
+              </th>
+              <th>TOTAL MARK</th>
+              <th>GRADE</th>
+              <th>POINTER</th>
+              <th>TOTAL MARK</th>
+              <th>GRADE</th>
+              <th>POINTER</th>
+            </tr>
+            <tr *ngFor="let studentResult of (studentResults$ | async)">
+              <td>{{ studentResult?.studentMatricNum }}</td>
+              <td><a [href]="'/dashboard/student/result/' + studentResult?.studentMatricNum">{{ studentResult?.studentName }}</a></td>
+              <td>{{ studentResult?.studentClass }}</td>
+              <td [ngSwitch]="studentResult.studentEvaluationsStatus">
+                <span *ngSwitchCase="'CMP'" class="rounded-pill badge-style badge-success">
+                  <i class="fa fa-circle me-2"></i>Complete
+                </span>
+                <span *ngSwitchCase="'INC'" class="rounded-pill badge-style badge-danger">
+                  <i class="fa fa-circle me-2"></i>Incomplete
+                </span>
+              </td>
+              <td class="text-center">
+                <ng-container *ngIf="studentResult.studentEvaluationsStatus == 'CMP'">{{ studentResult.subject1TotalMark?.toFixed(2) }}</ng-container>
+              </td>
+              <td class="text-center">
+                <ng-container *ngIf="studentResult.studentEvaluationsStatus == 'CMP'">{{ studentResult.subject1Grade }}</ng-container>
+              </td>
+              <td class="text-center">
+                <ng-container *ngIf="studentResult.studentEvaluationsStatus == 'CMP'">{{ studentResult.subject1Pointer }}</ng-container>
+              </td>
+              <td class="text-center">
+                <ng-container *ngIf="studentResult.studentEvaluationsStatus == 'CMP'">{{ studentResult.subject2TotalMark?.toFixed(2) }}</ng-container>
+              </td>
+              <td class="text-center">
+                <ng-container *ngIf="studentResult.studentEvaluationsStatus == 'CMP'">{{ studentResult.subject2Grade }}</ng-container>
+              </td>
+              <td class="text-center">
+                <ng-container *ngIf="studentResult.studentEvaluationsStatus == 'CMP'">{{ studentResult.subject2Pointer }}</ng-container>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      -->
+    </div>
+  </div>
+</div>
